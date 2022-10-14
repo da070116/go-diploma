@@ -43,7 +43,7 @@ func GetCountries() map[string]string {
 	}
 }
 
-// GetProviders - get available SMS Providers
+// GetProviders - get available Providers
 func GetProviders() map[string]struct{} {
 	return map[string]struct{}{"Topolo": {}, "Rond": {}, "Kildy": {}}
 }

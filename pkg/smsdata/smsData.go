@@ -6,6 +6,7 @@ import (
 	"go-diploma/pkg/utils"
 	"io"
 	"os"
+	"reflect"
 	"strconv"
 	"strings"
 )
@@ -109,7 +110,7 @@ func (s *SMSService) SetData(bytes []byte) error {
 // validateData - retrieve valid data array from string (if any)
 func (s *SMSService) validateData(record string) (validatedData []string, err error) {
 	attributes := strings.Split(record, ";")
-	if len(attributes) != 4 {
+	if len(attributes) != reflect.TypeOf(SMSData{}).NumField() {
 		err = errors.New("amount of parameters provided is wrong")
 		return
 	}
