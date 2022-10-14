@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"io"
 	"log"
 	"os"
 )
@@ -9,7 +10,15 @@ import (
 func FileClose(f *os.File) {
 	err := f.Close()
 	if err != nil {
-		log.Fatalf("error on on %v closing: %v\n", f, err)
+		log.Fatalf("error on %v closing: %v\n", f, err)
+	}
+}
+
+// CloseReader - close reader after get request body
+func CloseReader(Body io.ReadCloser) {
+	err := Body.Close()
+	if err != nil {
+		log.Fatalln(err)
 	}
 }
 
@@ -34,7 +43,21 @@ func GetCountries() map[string]string {
 	}
 }
 
-// GetSMSProviders - get available SMS Providers
-func GetSMSProviders() map[string]struct{} {
+// GetProviders - get available SMS Providers
+func GetProviders() map[string]struct{} {
 	return map[string]struct{}{"Topolo": {}, "Rond": {}, "Kildy": {}}
+}
+
+// IsAvailableCountry - return whether value is in list.
+func IsAvailableCountry(val string) bool {
+	list := GetCountries()
+	_, ok := list[val]
+	return ok
+}
+
+// IsAvailableProvider - return whether value is in list.
+func IsAvailableProvider(val string) bool {
+	list := GetProviders()
+	_, ok := list[val]
+	return ok
 }

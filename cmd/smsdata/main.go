@@ -6,9 +6,10 @@ import (
 	"log"
 )
 
+// main function for SMSData app
 func main() {
 	fmt.Println("main function for SMSData app")
-	smsService := smsdata.GetService()
+	smsService := smsdata.GetSMSService()
 	bytes, err := smsService.ReadCSVFile("sms.csv")
 	if err != nil {
 		log.Fatalln("no data")
