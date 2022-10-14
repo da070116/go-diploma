@@ -21,6 +21,11 @@ type SMSService struct {
 	Data []SMSData
 }
 
+// GetSMSService - initialize service for SMS data
+func GetSMSService() SMSServiceInterface {
+	return &SMSService{Data: make([]SMSData, 0)}
+}
+
 // SMSData - structure for store system data :
 // Country - alpha-2 country code from a list
 // Bandwidth - channel efficiency percent value (0 to 100)
@@ -35,10 +40,7 @@ type SMSData struct {
 
 // validateCountry - check whether country data is valid (belong to a list)
 func validateCountry(raw string) (result string, err error) {
-	available := utils.GetCountries()
-
-	_, ok := available[raw]
-	if ok {
+	if utils.IsAvailableCountry(raw) {
 		result = raw
 	} else {
 		err = errors.New("no such country")
@@ -72,10 +74,7 @@ func validateResponseTime(raw string) (result string, err error) {
 
 // validateProvider - check whether provider data is valid (string within permitted list+)
 func validateProvider(raw string) (result string, err error) {
-	available := utils.GetSMSProviders()
-
-	_, ok := available[raw]
-	if ok {
+	if utils.IsAvailableProvider(raw) {
 		result = raw
 	} else {
 		err = errors.New("no such provider")
@@ -135,11 +134,6 @@ func (s *SMSService) validateData(record string) (validatedData []string, err er
 	}
 	validatedData = append(validatedData, country, bandwidth, responseTime, provider)
 	return
-}
-
-// GetService - initialize service for SMS data
-func GetService() SMSServiceInterface {
-	return &SMSService{Data: make([]SMSData, 0)}
 }
 
 // ReturnData - display SMS data from service instance
