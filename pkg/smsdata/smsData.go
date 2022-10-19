@@ -4,10 +4,10 @@ import (
 	"errors"
 	"fmt"
 	"go-diploma/pkg/utils"
+	"go-diploma/pkg/validators"
 	"io"
 	"os"
 	"reflect"
-	"strconv"
 	"strings"
 )
 
@@ -39,50 +39,6 @@ type SMSData struct {
 	Provider     string
 }
 
-// validateCountry - check whether country data is valid (belong to a list)
-func validateCountry(raw string) (result string, err error) {
-	if utils.IsAvailableCountry(raw) {
-		result = raw
-	} else {
-		err = errors.New("no such country")
-	}
-	return
-}
-
-// validateBandwidth - check whether bandwidth data is valid (integer between 0 and 100)
-func validateBandwidth(raw string) (result string, err error) {
-	bandwidth, err := strconv.Atoi(raw)
-	if err != nil {
-		return
-	}
-	if bandwidth > 100 || bandwidth < 0 {
-		err = errors.New("bandwidth is out of range")
-		return
-	}
-	result = raw
-	return
-}
-
-// validateResponseTime - check whether responseTime data is valid (integer)
-func validateResponseTime(raw string) (result string, err error) {
-	_, err = strconv.Atoi(raw)
-	if err != nil {
-		return
-	}
-	result = raw
-	return
-}
-
-// validateProvider - check whether provider data is valid (string within permitted list+)
-func validateProvider(raw string) (result string, err error) {
-	if utils.IsAvailableProvider(raw) {
-		result = raw
-	} else {
-		err = errors.New("no such provider")
-	}
-	return
-}
-
 // SetData - append data from a file contents.
 func (s *SMSService) SetData(bytes []byte) error {
 	initialSize := len(s.Data)
@@ -93,12 +49,7 @@ func (s *SMSService) SetData(bytes []byte) error {
 		if err != nil {
 			continue
 		}
-		s.Data = append(s.Data, SMSData{
-			Country:      validated[0],
-			Bandwidth:    validated[1],
-			ResponseTime: validated[2],
-			Provider:     validated[3],
-		})
+		s.Data = append(s.Data, validated)
 	}
 	if initialSize == len(s.Data) {
 		return errors.New("no new data received")
@@ -108,32 +59,37 @@ func (s *SMSService) SetData(bytes []byte) error {
 }
 
 // validateData - retrieve valid data array from string (if any)
-func (s *SMSService) validateData(record string) (validatedData []string, err error) {
-	attributes := strings.Split(record, ";")
-	if len(attributes) != reflect.TypeOf(SMSData{}).NumField() {
+func (s *SMSService) validateData(record string) (validatedData SMSData, err error) {
+	attrs := strings.Split(record, ";")
+	if len(attrs) != reflect.TypeOf(SMSData{}).NumField() {
 		err = errors.New("amount of parameters provided is wrong")
 		return
 	}
-	country, err := validateCountry(attributes[0])
+	country, err := validators.ValidateCountry(attrs[0])
 	if err != nil {
 		return
 	}
 
-	bandwidth, err := validateBandwidth(attributes[1])
+	bandwidth, err := validators.ValidateBandwidth(attrs[1])
 	if err != nil {
 		return
 	}
 
-	responseTime, err := validateResponseTime(attributes[2])
+	responseTime, err := validators.ValidateResponseTime(attrs[2])
 	if err != nil {
 		return
 	}
 
-	provider, err := validateProvider(attributes[3])
+	provider, err := validators.ValidateProvider(attrs[3])
 	if err != nil {
 		return
 	}
-	validatedData = append(validatedData, country, bandwidth, responseTime, provider)
+	validatedData = SMSData{
+		Country:      country,
+		Bandwidth:    bandwidth,
+		ResponseTime: responseTime,
+		Provider:     provider,
+	}
 	return
 }
 

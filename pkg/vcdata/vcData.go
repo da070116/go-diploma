@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"go-diploma/pkg/utils"
+	"go-diploma/pkg/validators"
 	"io"
 	"os"
 	"reflect"
@@ -48,7 +49,7 @@ func (v *VoiceCallService) SetData(bytes []byte) error {
 		if err != nil {
 			continue
 		}
-		v.Data = append(v.Data, validated...)
+		v.Data = append(v.Data, validated)
 	}
 	if initialSize == len(v.Data) {
 		return errors.New("no new data received")
@@ -60,12 +61,64 @@ func (v *VoiceCallService) ReturnData() string {
 	return fmt.Sprintf("%v", v.Data)
 }
 
-func (v *VoiceCallService) validateData(record string) (validatedData []VoiceCallData, err error) {
+func (v *VoiceCallService) validateData(record string) (validatedData VoiceCallData, err error) {
 	attrs := strings.Split(record, ";")
 	if len(attrs) != reflect.TypeOf(VoiceCallData{}).NumField() {
 		err = errors.New("amount of parameters provided is wrong")
 		return
 	}
+
+	country, err := validators.ValidateCountry(attrs[0])
+	if err != nil {
+		return
+	}
+
+	bandwidth, err := validators.ValidateBandwidthAsInt(attrs[1])
+	if err != nil {
+		return
+	}
+
+	responseTime, err := validators.ValidateAsInteger(attrs[2])
+	if err != nil {
+		return
+	}
+
+	provider, err := validators.ValidateVoiceCallProvider(attrs[3])
+	if err != nil {
+		return
+	}
+
+	connectionStability, err := validators.ValidateConnectionStability(attrs[4])
+	if err != nil {
+		return
+	}
+
+	ttfb, err := validators.ValidateAsInteger(attrs[5])
+	if err != nil {
+		return
+	}
+
+	voiceClarity, err := validators.ValidateAsInteger(attrs[6])
+	if err != nil {
+		return
+	}
+
+	medianCallTime, err := validators.ValidateAsInteger(attrs[7])
+	if err != nil {
+		return
+	}
+
+	validatedData = VoiceCallData{
+		Country:             country,
+		Bandwidth:           bandwidth,
+		ResponseTime:        responseTime,
+		Provider:            provider,
+		ConnectionStability: connectionStability,
+		TTFB:                ttfb,
+		VoiceClarity:        voiceClarity,
+		MedianCallTime:      medianCallTime,
+	}
+
 	return
 }
 
@@ -80,10 +133,12 @@ func GetVoiceCallService() VoiceCallServiceInterface {
 // ResponseTime - response in milliseconds
 // Provider - VoiceCall provider from a list
 type VoiceCallData struct {
-	Country             string
-	CurrentLoading      int
-	AverageResponseTime int
-	Provider            string
-	ConnectionClarity   float32
-	CallLength          int
+	Country             string  `json:"country"`
+	Bandwidth           int     `json:"bandwidth"`
+	ResponseTime        int     `json:"response_time"`
+	Provider            string  `json:"provider"`
+	ConnectionStability float32 `json:"connection_stability"`
+	TTFB                int     `json:"ttfb"`
+	VoiceClarity        int     `json:"voice_clarity"`
+	MedianCallTime      int     `json:"median_call_time"`
 }
