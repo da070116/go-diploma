@@ -52,10 +52,6 @@ func (m *MMSService) SetData(bytes []byte) error {
 		return err
 	}
 
-	for _, record := range newRawData {
-		fmt.Println(record)
-	}
-
 	m.Data = append(m.Data, validateMMSData(newRawData)...)
 	if initialSize == len(m.Data) {
 		err := errors.New("no new data")

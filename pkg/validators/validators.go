@@ -74,6 +74,11 @@ func ValidateVoiceCallProvider(rawValue string) (result string, err error) {
 	return
 }
 
+// ValidateAccidentStatus - check whether value is equal to active or closed
+func ValidateAccidentStatus(statusValue string) bool {
+	return utils.IsInList(statusValue, map[string]struct{}{"active": {}, "closed": {}})
+}
+
 // ValidateEmailProvider - check whether provider data is valid (string within permitted list+)
 func ValidateEmailProvider(rawValue string) (result string, err error) {
 	if utils.IsInList(rawValue, utils.GetEmailProviders()) {

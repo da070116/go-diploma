@@ -9,7 +9,7 @@ import (
 
 // main function for voiceCallData app
 func main() {
-	fmt.Println("main function for voiceCallData app")
+	fmt.Println("main function for VoiceCall data app")
 	voiceCallService := vcdata.GetVoiceCallService()
 	bytes, err := voiceCallService.ReadCSVFile("vc.csv")
 	if err != nil {
