@@ -105,7 +105,7 @@ func GetEmailService() EmailServiceInterface {
 // DeliveryTime - response in milliseconds
 // Provider - Email provider from a list
 type EmailData struct {
-	Country      string
-	Provider     string
-	DeliveryTime int
+	Country      string `json:"country"`
+	Provider     string `json:"provider"`
+	DeliveryTime int    `json:"delivery_time"`
 }
