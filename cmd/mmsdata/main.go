@@ -8,6 +8,7 @@ import (
 
 // main  function for MMSData app
 func main() {
+	fmt.Println("main function for MMS data app")
 	mmsService := mmsdata.GetMMSService()
 	resp, err := mmsService.SendRequest("http://127.0.0.1:8383/mms")
 	if err != nil {

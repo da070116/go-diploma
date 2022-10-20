@@ -46,13 +46,13 @@ func (m *MMSService) SendRequest(path string) (result []byte, err error) {
 func (m *MMSService) SetData(bytes []byte) error {
 	initialSize := len(m.Data)
 
-	var newData []MMSData
-	err := json.Unmarshal(bytes, &newData)
+	var newRawData []MMSData
+	err := json.Unmarshal(bytes, &newRawData)
 	if err != nil {
 		return err
 	}
 
-	m.Data = append(m.Data, validateMMSData(newData)...)
+	m.Data = append(m.Data, validateMMSData(newRawData)...)
 	if initialSize == len(m.Data) {
 		err := errors.New("no new data")
 		return err
@@ -70,10 +70,10 @@ func GetMMSService() MMSServiceInterface {
 	return &MMSService{Data: make([]MMSData, 0)}
 }
 
-// validateMMSData - return validated MMS data from raw input
+// ValidateMMSData - return validated MMS data from raw input
 func validateMMSData(items []MMSData) (validItems []MMSData) {
 	for _, v := range items {
-		if utils.IsAvailableProvider(v.Provider) && utils.IsAvailableCountry(v.Country) {
+		if utils.IsInList(v.Provider, utils.GetProviders()) && utils.IsInList(v.Country, utils.GetCountries()) {
 			validItems = append(validItems, v)
 		}
 	}

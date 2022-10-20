@@ -43,21 +43,26 @@ func GetCountries() map[string]string {
 	}
 }
 
-// GetProviders - get available SMS Providers
+// GetProviders - get available Providers
 func GetProviders() map[string]struct{} {
 	return map[string]struct{}{"Topolo": {}, "Rond": {}, "Kildy": {}}
 }
 
-// IsAvailableCountry - return whether value is in list.
-func IsAvailableCountry(val string) bool {
-	list := GetCountries()
-	_, ok := list[val]
-	return ok
+// GetVoiceCallProviders - get available Providers
+func GetVoiceCallProviders() map[string]struct{} {
+	return map[string]struct{}{"TransparentCalls": {}, "E-Voice": {}, "JustPhone": {}}
 }
 
-// IsAvailableProvider - return whether value is in list.
-func IsAvailableProvider(val string) bool {
-	list := GetProviders()
+func GetEmailProviders() map[string]struct{} {
+	return map[string]struct{}{
+		"Gmail": {}, "Yahoo": {}, "Hotmail": {}, "MSN": {},
+		"Orange": {}, "Comcast": {}, "AOL": {}, "Live": {}, "RediffMail": {},
+		"GMX": {}, "Protonmail": {}, "Yandex": {}, "Mail.ru": {},
+	}
+}
+
+// IsInList - return whether value is in list.
+func IsInList[Base string | struct{}](val string, list map[string]Base) bool {
 	_, ok := list[val]
 	return ok
 }
