@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"go-diploma/pkg/utils"
 	"io"
+	"log"
 	"os"
 	"strconv"
 )
@@ -13,11 +14,26 @@ type BillingServiceInterface interface {
 	ReadFile(path string) ([]byte, error)
 	SetData([]byte) error
 	ReturnData() string
+	Execute(string) string
 }
 
 // BillingService - service to extract and store state data for Billing system
 type BillingService struct {
 	Data BillingData
+}
+
+func (bs *BillingService) Execute(path string) (result string) {
+	bytes, err := bs.ReadFile(path)
+	if err != nil {
+		log.Fatalln("no data")
+	}
+
+	err = bs.SetData(bytes)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	result = bs.ReturnData()
+	return
 }
 
 // GetBillingService - initialize service for Billing data
@@ -31,16 +47,16 @@ func GetBillingService() BillingServiceInterface {
 // ResponseTime - response in milliseconds
 // Provider - Billing provider from a list
 type BillingData struct {
-	CreateCustomer bool
-	Purchase       bool
-	Payout         bool
-	Recurring      bool
-	FraudControl   bool
-	CheckoutPage   bool
+	CreateCustomer bool `json:"create_customer"`
+	Purchase       bool `json:"purchase"`
+	Payout         bool `json:"payout"`
+	Recurring      bool `json:"recurring"`
+	FraudControl   bool `json:"fraud_control"`
+	CheckoutPage   bool `json:"checkout_page"`
 }
 
 // SetData - append data from a file contents.
-func (s *BillingService) SetData(bytes []byte) error {
+func (bs *BillingService) SetData(bytes []byte) error {
 	integerMaskValue, _ := strconv.Atoi(string(bytes))
 	if integerMaskValue > 255 {
 		integerMaskValue = integerMaskValue / 255
@@ -56,7 +72,7 @@ func (s *BillingService) SetData(bytes []byte) error {
 		i = i << 1
 		sliceIndex++
 	}
-	s.Data = BillingData{
+	bs.Data = BillingData{
 		CreateCustomer: flagValues[0],
 		Purchase:       flagValues[1],
 		Payout:         flagValues[2],
@@ -68,12 +84,12 @@ func (s *BillingService) SetData(bytes []byte) error {
 }
 
 // ReturnData - display Billing data from service instance
-func (s *BillingService) ReturnData() string {
-	return fmt.Sprintf("%v", s.Data)
+func (bs *BillingService) ReturnData() string {
+	return fmt.Sprintf("%v", bs.Data)
 }
 
 // ReadFile - returns a byte mask from file.
-func (s *BillingService) ReadFile(path string) (res []byte, err error) {
+func (bs *BillingService) ReadFile(path string) (res []byte, err error) {
 	if len(path) == 0 {
 		err = errors.New("no path provided")
 	}

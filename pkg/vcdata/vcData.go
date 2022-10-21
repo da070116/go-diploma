@@ -6,6 +6,7 @@ import (
 	"go-diploma/pkg/utils"
 	"go-diploma/pkg/validators"
 	"io"
+	"log"
 	"os"
 	"reflect"
 	"strings"
@@ -15,6 +16,7 @@ type VoiceCallServiceInterface interface {
 	ReadCSVFile(path string) ([]byte, error)
 	SetData([]byte) error
 	ReturnData() string
+	Execute(string) string
 }
 
 // VoiceCallService - service to extract and store state data for VoiceCall system
@@ -22,7 +24,19 @@ type VoiceCallService struct {
 	Data []VoiceCallData
 }
 
-func (v *VoiceCallService) ReadCSVFile(path string) (res []byte, err error) {
+func (vc *VoiceCallService) Execute(path string) string {
+	bytes, err := vc.ReadCSVFile(path)
+	if err != nil {
+		log.Fatalln("no data")
+	}
+	err = vc.SetData(bytes)
+	if err != nil {
+		log.Fatalln("no data")
+	}
+	return vc.ReturnData()
+}
+
+func (vc *VoiceCallService) ReadCSVFile(path string) (res []byte, err error) {
 	if len(path) == 0 {
 		err = errors.New("no path provided")
 	}
@@ -30,9 +44,7 @@ func (v *VoiceCallService) ReadCSVFile(path string) (res []byte, err error) {
 	if err != nil {
 		return
 	}
-
 	defer utils.FileClose(file)
-
 	res, err = io.ReadAll(file)
 	if err != nil {
 		return
@@ -40,28 +52,28 @@ func (v *VoiceCallService) ReadCSVFile(path string) (res []byte, err error) {
 	return
 }
 
-func (v *VoiceCallService) SetData(bytes []byte) error {
-	initialSize := len(v.Data)
+func (vc *VoiceCallService) SetData(bytes []byte) error {
+	initialSize := len(vc.Data)
 	data := string(bytes[:])
 	records := strings.Split(data, "\n")
 	for _, record := range records {
-		validated, err := v.validateData(record)
+		validated, err := vc.validateData(record)
 		if err != nil {
 			continue
 		}
-		v.Data = append(v.Data, validated)
+		vc.Data = append(vc.Data, validated)
 	}
-	if initialSize == len(v.Data) {
+	if initialSize == len(vc.Data) {
 		return errors.New("no new data received")
 	}
 	return nil
 }
 
-func (v *VoiceCallService) ReturnData() string {
-	return fmt.Sprintf("%v", v.Data)
+func (vc *VoiceCallService) ReturnData() string {
+	return fmt.Sprintf("%v", vc.Data)
 }
 
-func (v *VoiceCallService) validateData(record string) (validatedData VoiceCallData, err error) {
+func (vc *VoiceCallService) validateData(record string) (validatedData VoiceCallData, err error) {
 	attrs := strings.Split(record, ";")
 	if len(attrs) != reflect.TypeOf(VoiceCallData{}).NumField() {
 		err = errors.New("amount of parameters provided is wrong")
