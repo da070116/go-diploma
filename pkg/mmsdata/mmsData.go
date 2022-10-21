@@ -8,13 +8,15 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"sort"
 )
 
 type MMSServiceInterface interface {
 	SendRequest(path string) ([]byte, error)
 	SetData([]byte) error
-	ReturnData() string
-	Execute(string) string
+	DisplayData() []MMSData
+	Execute(string) []MMSData
+	ReturnFormattedData() [][]MMSData
 }
 
 type MMSData struct {
@@ -24,12 +26,44 @@ type MMSData struct {
 	ResponseTime string `json:"response_time"`
 }
 
+type ByCountryAsc []MMSData
+
+func (a ByCountryAsc) Len() int           { return len(a) }
+func (a ByCountryAsc) Less(i, j int) bool { return a[i].Country < a[j].Country }
+func (a ByCountryAsc) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+
+type ByProviderAsc []MMSData
+
+func (a ByProviderAsc) Len() int           { return len(a) }
+func (a ByProviderAsc) Less(i, j int) bool { return a[i].Provider < a[j].Provider }
+func (a ByProviderAsc) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+
 // MMSService - service to extract and store state data for MMS system
 type MMSService struct {
 	Data []MMSData
 }
 
-func (m *MMSService) Execute(s string) string {
+func (m *MMSService) ReturnFormattedData() [][]MMSData {
+	fullCountryData := m.displayFullCountry()
+	result := make([][]MMSData, 0)
+	sort.Sort(ByProviderAsc(fullCountryData))
+	result = append(result, fullCountryData)
+
+	sort.Sort(ByCountryAsc(fullCountryData))
+	result = append(result, fullCountryData)
+	return result
+}
+
+func (m *MMSService) displayFullCountry() []MMSData {
+	result := m.Data
+	countriesMap := utils.GetCountries()
+	for i, mmsRecord := range m.Data {
+		result[i].Country = countriesMap[mmsRecord.Country]
+	}
+	return result
+}
+
+func (m *MMSService) Execute(s string) []MMSData {
 	resp, err := m.SendRequest(s)
 	if err != nil {
 		log.Fatalln(err)
@@ -38,7 +72,7 @@ func (m *MMSService) Execute(s string) string {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	return m.ReturnData()
+	return m.DisplayData()
 }
 
 // SendRequest - function makes a GET request to provided path and returns []byte result
@@ -74,9 +108,9 @@ func (m *MMSService) SetData(bytes []byte) error {
 	return nil
 }
 
-// ReturnData - display MMS data
-func (m *MMSService) ReturnData() string {
-	return fmt.Sprintf("%v\n", m.Data)
+// DisplayData - display MMS data
+func (m *MMSService) DisplayData() []MMSData {
+	return m.Data
 }
 
 // GetMMSService - initialize service for MMS data

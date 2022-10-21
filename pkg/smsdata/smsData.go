@@ -2,21 +2,22 @@ package smsdata
 
 import (
 	"errors"
-	"fmt"
 	"go-diploma/pkg/utils"
 	"go-diploma/pkg/validators"
 	"io"
 	"log"
 	"os"
 	"reflect"
+	"sort"
 	"strings"
 )
 
 type SMSServiceInterface interface {
 	ReadCSVFile(path string) ([]byte, error)
 	SetData([]byte) error
-	ReturnData() string
-	Execute(string) string
+	DisplayData() []SMSData
+	Execute(string) []SMSData
+	ReturnFormattedData() [][]SMSData
 }
 
 // SMSService - service to extract and store state data for SMS system
@@ -24,7 +25,20 @@ type SMSService struct {
 	Data []SMSData
 }
 
-func (s *SMSService) Execute(path string) string {
+// ReturnFormattedData - get sorted data in expected format : two sorted lists
+func (s *SMSService) ReturnFormattedData() [][]SMSData {
+	fullCountryData := s.displayFullCountry()
+	result := make([][]SMSData, 0)
+	sort.Sort(ByProviderAsc(fullCountryData))
+	result = append(result, fullCountryData)
+
+	sort.Sort(ByCountryAsc(fullCountryData))
+	result = append(result, fullCountryData)
+	return result
+}
+
+// Execute - initiate collector and fetch data
+func (s *SMSService) Execute(path string) []SMSData {
 	bytes, err := s.ReadCSVFile(path)
 	if err != nil {
 		log.Fatalln("no data")
@@ -33,7 +47,7 @@ func (s *SMSService) Execute(path string) string {
 	if err != nil {
 		log.Fatalln("unable to set the data: ", err)
 	}
-	return s.ReturnData()
+	return s.DisplayData()
 }
 
 // GetSMSService - initialize service for SMS data
@@ -52,6 +66,18 @@ type SMSData struct {
 	ResponseTime string
 	Provider     string
 }
+
+type ByCountryAsc []SMSData
+
+func (a ByCountryAsc) Len() int           { return len(a) }
+func (a ByCountryAsc) Less(i, j int) bool { return a[i].Country < a[j].Country }
+func (a ByCountryAsc) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+
+type ByProviderAsc []SMSData
+
+func (a ByProviderAsc) Len() int           { return len(a) }
+func (a ByProviderAsc) Less(i, j int) bool { return a[i].Provider < a[j].Provider }
+func (a ByProviderAsc) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 
 // SetData - append data from a file contents.
 func (s *SMSService) SetData(bytes []byte) error {
@@ -106,9 +132,18 @@ func (s *SMSService) validateData(record string) (validatedData SMSData, err err
 	return
 }
 
-// ReturnData - display SMS data from service instance
-func (s *SMSService) ReturnData() string {
-	return fmt.Sprintf("%v", s.Data)
+func (s *SMSService) displayFullCountry() []SMSData {
+	result := s.Data
+	countriesMap := utils.GetCountries()
+	for i, smsRecord := range s.Data {
+		result[i].Country = countriesMap[smsRecord.Country]
+	}
+	return result
+}
+
+// DisplayData - display SMS data from service instance
+func (s *SMSService) DisplayData() []SMSData {
+	return s.Data
 }
 
 // ReadCSVFile - returns a byte array from csv file.

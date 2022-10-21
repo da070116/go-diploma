@@ -9,13 +9,15 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"sort"
 )
 
 type AccidentServiceInterface interface {
 	SendRequest(path string) ([]byte, error)
 	SetData([]byte) error
-	ReturnData() string
-	Execute(string) string
+	DisplayData() []AccidentData
+	Execute(string) []AccidentData
+	ReturnFormattedData() []AccidentData
 }
 
 type AccidentData struct {
@@ -28,7 +30,19 @@ type AccidentService struct {
 	Data []AccidentData
 }
 
-func (as *AccidentService) Execute(path string) string {
+type ByState []AccidentData
+
+func (a ByState) Len() int           { return len(a) }
+func (a ByState) Less(i, j int) bool { return a[i].Status < a[j].Status }
+func (a ByState) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+
+func (as *AccidentService) ReturnFormattedData() []AccidentData {
+	result := as.Data
+	sort.Sort(ByState(result))
+	return result
+}
+
+func (as *AccidentService) Execute(path string) []AccidentData {
 
 	resp, err := as.SendRequest(path)
 	if err != nil {
@@ -38,7 +52,7 @@ func (as *AccidentService) Execute(path string) string {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	return as.ReturnData()
+	return as.DisplayData()
 }
 
 // SendRequest - function makes a GET request to provided path and returns []byte result
@@ -74,9 +88,9 @@ func (as *AccidentService) SetData(bytes []byte) error {
 	return nil
 }
 
-// ReturnData - display Accident data
-func (as *AccidentService) ReturnData() string {
-	return fmt.Sprintf("%v\n", as.Data)
+// DisplayData - display Accident data
+func (as *AccidentService) DisplayData() []AccidentData {
+	return as.Data
 }
 
 // GetAccidentService - initialize service for Accident data
