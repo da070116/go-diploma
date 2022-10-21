@@ -7,6 +7,7 @@ import (
 	"go-diploma/pkg/utils"
 	"go-diploma/pkg/validators"
 	"io"
+	"log"
 	"net/http"
 )
 
@@ -14,6 +15,7 @@ type AccidentServiceInterface interface {
 	SendRequest(path string) ([]byte, error)
 	SetData([]byte) error
 	ReturnData() string
+	Execute(string) string
 }
 
 type AccidentData struct {
@@ -26,8 +28,21 @@ type AccidentService struct {
 	Data []AccidentData
 }
 
+func (as *AccidentService) Execute(path string) string {
+
+	resp, err := as.SendRequest(path)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	err = as.SetData(resp)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	return as.ReturnData()
+}
+
 // SendRequest - function makes a GET request to provided path and returns []byte result
-func (m *AccidentService) SendRequest(path string) (result []byte, err error) {
+func (as *AccidentService) SendRequest(path string) (result []byte, err error) {
 	response, err := http.Get(path)
 	if err != nil {
 		return
@@ -42,8 +57,8 @@ func (m *AccidentService) SendRequest(path string) (result []byte, err error) {
 }
 
 // SetData - validate and fill data in storage from a raw []byte slice
-func (m *AccidentService) SetData(bytes []byte) error {
-	initialSize := len(m.Data)
+func (as *AccidentService) SetData(bytes []byte) error {
+	initialSize := len(as.Data)
 
 	var newRawData []AccidentData
 	err := json.Unmarshal(bytes, &newRawData)
@@ -51,8 +66,8 @@ func (m *AccidentService) SetData(bytes []byte) error {
 		return err
 	}
 
-	m.Data = append(m.Data, validateAccidentData(newRawData)...)
-	if initialSize == len(m.Data) {
+	as.Data = append(as.Data, validateAccidentData(newRawData)...)
+	if initialSize == len(as.Data) {
 		err := errors.New("no new data")
 		return err
 	}
@@ -60,8 +75,8 @@ func (m *AccidentService) SetData(bytes []byte) error {
 }
 
 // ReturnData - display Accident data
-func (m *AccidentService) ReturnData() string {
-	return fmt.Sprintf("%v\n", m.Data)
+func (as *AccidentService) ReturnData() string {
+	return fmt.Sprintf("%v\n", as.Data)
 }
 
 // GetAccidentService - initialize service for Accident data

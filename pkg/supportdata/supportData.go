@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"go-diploma/pkg/utils"
 	"io"
+	"log"
 	"net/http"
 )
 
@@ -13,6 +14,7 @@ type SupportServiceInterface interface {
 	SendRequest(path string) ([]byte, error)
 	SetData([]byte) error
 	ReturnData() string
+	Execute(string) string
 }
 
 type SupportData struct {
@@ -25,8 +27,20 @@ type SupportService struct {
 	Data []SupportData
 }
 
+func (s *SupportService) Execute(path string) string {
+	resp, err := s.SendRequest(path)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	err = s.SetData(resp)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	return s.ReturnData()
+}
+
 // SendRequest - function makes a GET request to provided path and returns []byte result
-func (m *SupportService) SendRequest(path string) (result []byte, err error) {
+func (s *SupportService) SendRequest(path string) (result []byte, err error) {
 	response, err := http.Get(path)
 	if err != nil {
 		return
@@ -41,8 +55,8 @@ func (m *SupportService) SendRequest(path string) (result []byte, err error) {
 }
 
 // SetData - validate and fill data in storage from a raw []byte slice
-func (m *SupportService) SetData(bytes []byte) error {
-	initialSize := len(m.Data)
+func (s *SupportService) SetData(bytes []byte) error {
+	initialSize := len(s.Data)
 
 	var newRawData []SupportData
 	err := json.Unmarshal(bytes, &newRawData)
@@ -50,8 +64,8 @@ func (m *SupportService) SetData(bytes []byte) error {
 		return err
 	}
 
-	m.Data = append(m.Data, validateSupportData(newRawData)...)
-	if initialSize == len(m.Data) {
+	s.Data = append(s.Data, validateSupportData(newRawData)...)
+	if initialSize == len(s.Data) {
 		err := errors.New("no new data")
 		return err
 	}
@@ -59,8 +73,8 @@ func (m *SupportService) SetData(bytes []byte) error {
 }
 
 // ReturnData - display Support data
-func (m *SupportService) ReturnData() string {
-	return fmt.Sprintf("%v\n", m.Data)
+func (s *SupportService) ReturnData() string {
+	return fmt.Sprintf("%v\n", s.Data)
 }
 
 // GetSupportService - initialize service for Support data

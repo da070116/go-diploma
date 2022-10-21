@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"go-diploma/pkg/utils"
 	"io"
+	"log"
 	"net/http"
 )
 
@@ -13,6 +14,7 @@ type MMSServiceInterface interface {
 	SendRequest(path string) ([]byte, error)
 	SetData([]byte) error
 	ReturnData() string
+	Execute(string) string
 }
 
 type MMSData struct {
@@ -25,6 +27,18 @@ type MMSData struct {
 // MMSService - service to extract and store state data for MMS system
 type MMSService struct {
 	Data []MMSData
+}
+
+func (m *MMSService) Execute(s string) string {
+	resp, err := m.SendRequest(s)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	err = m.SetData(resp)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	return m.ReturnData()
 }
 
 // SendRequest - function makes a GET request to provided path and returns []byte result

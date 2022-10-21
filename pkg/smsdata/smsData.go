@@ -6,6 +6,7 @@ import (
 	"go-diploma/pkg/utils"
 	"go-diploma/pkg/validators"
 	"io"
+	"log"
 	"os"
 	"reflect"
 	"strings"
@@ -15,11 +16,24 @@ type SMSServiceInterface interface {
 	ReadCSVFile(path string) ([]byte, error)
 	SetData([]byte) error
 	ReturnData() string
+	Execute(string) string
 }
 
 // SMSService - service to extract and store state data for SMS system
 type SMSService struct {
 	Data []SMSData
+}
+
+func (s *SMSService) Execute(path string) string {
+	bytes, err := s.ReadCSVFile(path)
+	if err != nil {
+		log.Fatalln("no data")
+	}
+	err = s.SetData(bytes)
+	if err != nil {
+		log.Fatalln("unable to set the data: ", err)
+	}
+	return s.ReturnData()
 }
 
 // GetSMSService - initialize service for SMS data
@@ -54,7 +68,6 @@ func (s *SMSService) SetData(bytes []byte) error {
 	if initialSize == len(s.Data) {
 		return errors.New("no new data received")
 	}
-	fmt.Println(s.Data)
 	return nil
 }
 
