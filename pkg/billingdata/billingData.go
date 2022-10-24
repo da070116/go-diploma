@@ -2,7 +2,6 @@ package billingdata
 
 import (
 	"errors"
-	"fmt"
 	"go-diploma/pkg/utils"
 	"io"
 	"log"
@@ -13,8 +12,8 @@ import (
 type BillingServiceInterface interface {
 	ReadFile(path string) ([]byte, error)
 	SetData([]byte) error
-	ReturnData() string
-	Execute(string) string
+	DisplayData() BillingData
+	Execute(string) BillingData
 }
 
 // BillingService - service to extract and store state data for Billing system
@@ -22,7 +21,7 @@ type BillingService struct {
 	Data BillingData
 }
 
-func (bs *BillingService) Execute(path string) (result string) {
+func (bs *BillingService) Execute(path string) (result BillingData) {
 	bytes, err := bs.ReadFile(path)
 	if err != nil {
 		log.Fatalln("no data")
@@ -32,7 +31,7 @@ func (bs *BillingService) Execute(path string) (result string) {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	result = bs.ReturnData()
+	result = bs.DisplayData()
 	return
 }
 
@@ -83,9 +82,9 @@ func (bs *BillingService) SetData(bytes []byte) error {
 	return nil
 }
 
-// ReturnData - display Billing data from service instance
-func (bs *BillingService) ReturnData() string {
-	return fmt.Sprintf("%v", bs.Data)
+// DisplayData - display Billing data from service instance
+func (bs *BillingService) DisplayData() BillingData {
+	return bs.Data
 }
 
 // ReadFile - returns a byte mask from file.

@@ -13,8 +13,9 @@ import (
 type SupportServiceInterface interface {
 	SendRequest(path string) ([]byte, error)
 	SetData([]byte) error
-	ReturnData() string
-	Execute(string) string
+	DisplayData() []SupportData
+	Execute(string) []SupportData
+	ReturnFormattedData() []int
 }
 
 type SupportData struct {
@@ -27,7 +28,12 @@ type SupportService struct {
 	Data []SupportData
 }
 
-func (s *SupportService) Execute(path string) string {
+func (s *SupportService) ReturnFormattedData() []int {
+	result := make([]int, 0)
+	return result
+}
+
+func (s *SupportService) Execute(path string) []SupportData {
 	resp, err := s.SendRequest(path)
 	if err != nil {
 		log.Fatalln(err)
@@ -36,7 +42,7 @@ func (s *SupportService) Execute(path string) string {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	return s.ReturnData()
+	return s.DisplayData()
 }
 
 // SendRequest - function makes a GET request to provided path and returns []byte result
@@ -72,9 +78,9 @@ func (s *SupportService) SetData(bytes []byte) error {
 	return nil
 }
 
-// ReturnData - display Support data
-func (s *SupportService) ReturnData() string {
-	return fmt.Sprintf("%v\n", s.Data)
+// DisplayData - display Support data
+func (s *SupportService) DisplayData() []SupportData {
+	return s.Data
 }
 
 // GetSupportService - initialize service for Support data

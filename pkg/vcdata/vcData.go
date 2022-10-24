@@ -2,7 +2,6 @@ package vcdata
 
 import (
 	"errors"
-	"fmt"
 	"go-diploma/pkg/utils"
 	"go-diploma/pkg/validators"
 	"io"
@@ -15,8 +14,8 @@ import (
 type VoiceCallServiceInterface interface {
 	ReadCSVFile(path string) ([]byte, error)
 	SetData([]byte) error
-	ReturnData() string
-	Execute(string) string
+	ReturnData() []VoiceCallData
+	Execute(string) []VoiceCallData
 }
 
 // VoiceCallService - service to extract and store state data for VoiceCall system
@@ -24,7 +23,7 @@ type VoiceCallService struct {
 	Data []VoiceCallData
 }
 
-func (vc *VoiceCallService) Execute(path string) string {
+func (vc *VoiceCallService) Execute(path string) []VoiceCallData {
 	bytes, err := vc.ReadCSVFile(path)
 	if err != nil {
 		log.Fatalln("no data")
@@ -69,8 +68,8 @@ func (vc *VoiceCallService) SetData(bytes []byte) error {
 	return nil
 }
 
-func (vc *VoiceCallService) ReturnData() string {
-	return fmt.Sprintf("%v", vc.Data)
+func (vc *VoiceCallService) ReturnData() []VoiceCallData {
+	return vc.Data
 }
 
 func (vc *VoiceCallService) validateData(record string) (validatedData VoiceCallData, err error) {

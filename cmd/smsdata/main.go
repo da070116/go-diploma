@@ -9,5 +9,6 @@ import (
 func main() {
 	fmt.Println("main function for SMSData app")
 	smsService := smsdata.GetSMSService()
-	fmt.Println(smsService.Execute("sms.csv"))
+	smsService.Execute("sms.csv")
+	fmt.Println(smsService.DisplayData())
 }
