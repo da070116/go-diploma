@@ -9,6 +9,7 @@ import (
 	"os"
 	"reflect"
 	"strings"
+	"unicode"
 )
 
 type VoiceCallServiceInterface interface {
@@ -74,7 +75,11 @@ func (vc *VoiceCallService) ReturnData() []VoiceCallData {
 }
 
 func (vc *VoiceCallService) validateData(record string) (validatedData VoiceCallData, err error) {
-	attrs := strings.Split(record, ";")
+	// important fix - string comes to function with a new-line-sign, that affects on validation
+	cleanString := strings.TrimRightFunc(record, func(r rune) bool {
+		return !unicode.IsLetter(r) && !unicode.IsNumber(r)
+	})
+	attrs := strings.Split(cleanString, ";")
 	if len(attrs) != reflect.TypeOf(VoiceCallData{}).NumField() {
 		err = errors.New("amount of parameters provided is wrong")
 		return

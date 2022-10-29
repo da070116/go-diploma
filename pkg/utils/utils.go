@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"fmt"
 	"io"
 	"log"
 	"os"
@@ -65,9 +64,13 @@ func GetEmailProviders() map[string]struct{} {
 }
 
 // IsInList - return whether value is in list.
-func IsInList[Base string | struct{}](val string, list map[string]Base) bool {
-	_, ok := list[val]
-	return ok
+func IsInList[Base string | struct{}](search string, list map[string]Base) bool {
+	for _, value := range Keys(list) {
+		if search == value {
+			return true
+		}
+	}
+	return false
 }
 
 // GetConfigPath
@@ -82,8 +85,13 @@ func GetConfigPath(filename string) (resultPath string) {
 	// so we need to move two folders higher
 	rootFolder := filepath.Dir(filepath.Dir(currentLocation))
 	resultPath = filepath.Join(rootFolder, "conf", filename)
+	return
+}
 
-	fmt.Println(resultPath)
-
+// Keys - return keys from any map
+func Keys[Base string | struct{}](m map[string]Base) (keys []string) {
+	for k := range m {
+		keys = append(keys, k)
+	}
 	return
 }

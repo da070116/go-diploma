@@ -2,21 +2,22 @@ package emaildata
 
 import (
 	"errors"
-	"fmt"
 	"go-diploma/pkg/utils"
 	"go-diploma/pkg/validators"
 	"io"
 	"log"
 	"os"
 	"reflect"
+	"sort"
 	"strings"
+	"unicode"
 )
 
 type EmailServiceInterface interface {
 	ReadCSVFile(path string) ([]byte, error)
 	SetData([]byte) error
 	DisplayData() []EmailData
-	Execute(string) []EmailData
+	Execute(string) map[string][][]EmailData
 	ReturnFormattedData() map[string][][]EmailData
 }
 
@@ -28,7 +29,7 @@ type EmailService struct {
 func (es *EmailService) displayFullCountry() []EmailData {
 	result := es.Data
 	countriesMap := utils.GetCountries()
-	for i, emailRecord := range es.Data {
+	for i, emailRecord := range result {
 		result[i].Country = countriesMap[emailRecord.Country]
 	}
 	return result
@@ -42,24 +43,30 @@ func (es *EmailService) ReturnFormattedData() map[string][][]EmailData {
 	for _, value := range es.displayFullCountry() {
 		rawData[value.Country] = append(rawData[value.Country], value)
 	}
-	// min3Providers := es.Data
-	// sort.Sort(ByMinDeliveryTime(min3Providers))
 
-	// max3Providers := es.Data
-	// sort.Sort(ByMinDeliveryTime(max3Providers))
+	for key, valuesList := range rawData {
+		minTimeProviders := make([]EmailData, 0)
+		minTimeProviders = append(minTimeProviders, valuesList...)
+		sort.Sort(ByMinDeliveryTime(minTimeProviders))
 
-	// fullNames := es.displayFullCountry()
-	// println(fullNames)
-	// //for _, name := range fullNames {
-	// //	result[name] = append(result[name], min3Providers[0:2])
-	// //}
+		maxTimeProviders := make([]EmailData, 0)
+		maxTimeProviders = append(maxTimeProviders, valuesList...)
+		sort.Sort(ByMaxDeliveryTime(maxTimeProviders))
 
-	fmt.Println(rawData)
+		if len(maxTimeProviders) > 3 {
+			maxTimeProviders = maxTimeProviders[:2]
+		}
 
+		if len(minTimeProviders) > 3 {
+			minTimeProviders = minTimeProviders[:2]
+		}
+
+		result[key] = append(result[key], minTimeProviders, maxTimeProviders)
+	}
 	return result
 }
 
-func (es *EmailService) Execute(filename string) []EmailData {
+func (es *EmailService) Execute(filename string) map[string][][]EmailData {
 	path := utils.GetConfigPath(filename)
 	bytes, err := es.ReadCSVFile(path)
 	if err != nil {
@@ -69,7 +76,7 @@ func (es *EmailService) Execute(filename string) []EmailData {
 	if err != nil {
 		log.Fatalln("unable to set data")
 	}
-	return es.DisplayData()
+	return es.ReturnFormattedData()
 }
 
 func (es *EmailService) ReadCSVFile(path string) (res []byte, err error) {
@@ -105,7 +112,6 @@ func (es *EmailService) SetData(bytes []byte) error {
 	if initialSize == len(es.Data) {
 		return errors.New("no new data received")
 	}
-	fmt.Println(es.Data)
 	return nil
 }
 
@@ -114,7 +120,11 @@ func (es *EmailService) DisplayData() []EmailData {
 }
 
 func (es *EmailService) validateData(record string) (validatedData EmailData, err error) {
-	attrs := strings.Split(record, ";")
+	// important fix - string comes to function with a new-line-sign, that affects on validation
+	cleanString := strings.TrimRightFunc(record, func(r rune) bool {
+		return !unicode.IsLetter(r) && !unicode.IsNumber(r)
+	})
+	attrs := strings.Split(cleanString, ";")
 	if len(attrs) != reflect.TypeOf(EmailData{}).NumField() {
 		err = errors.New("amount of parameters provided is wrong")
 		return

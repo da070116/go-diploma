@@ -4,12 +4,13 @@ import (
 	"errors"
 	"go-diploma/pkg/utils"
 	"go-diploma/pkg/validators"
-	"io"
+	"io/ioutil"
 	"log"
 	"os"
 	"reflect"
 	"sort"
 	"strings"
+	"unicode"
 )
 
 type SMSServiceInterface interface {
@@ -86,7 +87,7 @@ func (s *SMSService) SetData(bytes []byte) error {
 	data := string(bytes[:])
 	records := strings.Split(data, "\n")
 	for _, record := range records {
-		validated, err := s.validateData(record)
+		validated, err := s.validateData(strings.Trim(record, "\n"))
 		if err != nil {
 			continue
 		}
@@ -100,11 +101,16 @@ func (s *SMSService) SetData(bytes []byte) error {
 
 // validateData - retrieve valid data array from string (if any)
 func (s *SMSService) validateData(record string) (validatedData SMSData, err error) {
-	attrs := strings.Split(record, ";")
+	// important fix - string comes to function with a new-line-sign, that affects on validation
+	cleanString := strings.TrimRightFunc(record, func(r rune) bool {
+		return !unicode.IsLetter(r) && !unicode.IsNumber(r)
+	})
+	attrs := strings.Split(cleanString, ";")
 	if len(attrs) != reflect.TypeOf(SMSData{}).NumField() {
 		err = errors.New("amount of parameters provided is wrong")
 		return
 	}
+
 	country, err := validators.ValidateCountry(attrs[0])
 	if err != nil {
 		return
@@ -158,8 +164,7 @@ func (s *SMSService) ReadCSVFile(path string) (res []byte, err error) {
 	}
 
 	defer utils.FileClose(file)
-
-	res, err = io.ReadAll(file)
+	res, err = ioutil.ReadAll(file)
 	if err != nil {
 		return
 	}
