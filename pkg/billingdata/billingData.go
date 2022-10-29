@@ -21,12 +21,12 @@ type BillingService struct {
 	Data BillingData
 }
 
-func (bs *BillingService) Execute(path string) (result BillingData) {
+func (bs *BillingService) Execute(filename string) (result BillingData) {
+	path := utils.GetConfigPath(filename)
 	bytes, err := bs.ReadFile(path)
 	if err != nil {
-		log.Fatalln("no data")
+		log.Fatalln("no data: ", err)
 	}
-
 	err = bs.SetData(bytes)
 	if err != nil {
 		log.Fatalln(err)

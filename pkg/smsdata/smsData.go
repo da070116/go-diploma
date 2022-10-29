@@ -38,10 +38,11 @@ func (s *SMSService) ReturnFormattedData() [][]SMSData {
 }
 
 // Execute - initiate collector and fetch data
-func (s *SMSService) Execute(path string) []SMSData {
+func (s *SMSService) Execute(filename string) []SMSData {
+	path := utils.GetConfigPath(filename)
 	bytes, err := s.ReadCSVFile(path)
 	if err != nil {
-		log.Fatalln("no data")
+		log.Fatalln("no data: ", err)
 	}
 	err = s.SetData(bytes)
 	if err != nil {

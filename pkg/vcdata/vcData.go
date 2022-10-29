@@ -23,10 +23,11 @@ type VoiceCallService struct {
 	Data []VoiceCallData
 }
 
-func (vc *VoiceCallService) Execute(path string) []VoiceCallData {
+func (vc *VoiceCallService) Execute(filename string) []VoiceCallData {
+	path := utils.GetConfigPath(filename)
 	bytes, err := vc.ReadCSVFile(path)
 	if err != nil {
-		log.Fatalln("no data")
+		log.Fatalln("no data: ", err)
 	}
 	err = vc.SetData(bytes)
 	if err != nil {

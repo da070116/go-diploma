@@ -1,9 +1,11 @@
 package utils
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"os"
+	"path/filepath"
 )
 
 // FileClose - error-free file closing
@@ -43,16 +45,17 @@ func GetCountries() map[string]string {
 	}
 }
 
-// GetProviders - get available Providers
+// GetProviders - get available MMS and SMS providers
 func GetProviders() map[string]struct{} {
 	return map[string]struct{}{"Topolo": {}, "Rond": {}, "Kildy": {}}
 }
 
-// GetVoiceCallProviders - get available Providers
+// GetVoiceCallProviders - get available VoiceCall providers
 func GetVoiceCallProviders() map[string]struct{} {
 	return map[string]struct{}{"TransparentCalls": {}, "E-Voice": {}, "JustPhone": {}}
 }
 
+// GetEmailProviders - return Email providers list
 func GetEmailProviders() map[string]struct{} {
 	return map[string]struct{}{
 		"Gmail": {}, "Yahoo": {}, "Hotmail": {}, "MSN": {},
@@ -65,4 +68,22 @@ func GetEmailProviders() map[string]struct{} {
 func IsInList[Base string | struct{}](val string, list map[string]Base) bool {
 	_, ok := list[val]
 	return ok
+}
+
+// GetConfigPath
+func GetConfigPath(filename string) (resultPath string) {
+	currentLocation, err := os.Getwd()
+	if err != nil {
+		log.Fatalf("Error on calling current path: %s\n", err)
+	}
+	// /root/path/to/go_diploma/cmd/anyappfolder/main.go
+	// os.Getwd returns             /root/path/to/go_diploma/cmd/anyappfolder
+	// and config folder located at /root/path/to/go_diploma/conf
+	// so we need to move two folders higher
+	rootFolder := filepath.Dir(filepath.Dir(currentLocation))
+	resultPath = filepath.Join(rootFolder, "conf", filename)
+
+	fmt.Println(resultPath)
+
+	return
 }

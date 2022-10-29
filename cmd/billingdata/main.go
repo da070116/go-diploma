@@ -6,8 +6,8 @@ import (
 )
 
 func main() {
-	fmt.Println("main function for EmailData app")
+	fmt.Println("main function for Conf app")
 
 	billingService := billingdata.GetBillingService()
-	fmt.Println(billingService.Execute("conf/billing.cfg"))
+	fmt.Println(billingService.Execute("billing.cfg"))
 }

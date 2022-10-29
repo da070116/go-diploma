@@ -9,7 +9,6 @@ import (
 	"log"
 	"os"
 	"reflect"
-	"sort"
 	"strings"
 )
 
@@ -38,25 +37,33 @@ func (es *EmailService) displayFullCountry() []EmailData {
 func (es *EmailService) ReturnFormattedData() map[string][][]EmailData {
 	result := make(map[string][][]EmailData)
 
-	min3Providers := es.Data
-	sort.Sort(ByMinDeliveryTime(min3Providers))
+	rawData := make(map[string][]EmailData)
 
-	max3Providers := es.Data
-	sort.Sort(ByMinDeliveryTime(max3Providers))
+	for _, value := range es.displayFullCountry() {
+		rawData[value.Country] = append(rawData[value.Country], value)
+	}
+	// min3Providers := es.Data
+	// sort.Sort(ByMinDeliveryTime(min3Providers))
 
-	fullNames := es.displayFullCountry()
-	println(fullNames)
-	//for _, name := range fullNames {
-	//	result[name] = append(result[name], min3Providers[0:2])
-	//}
+	// max3Providers := es.Data
+	// sort.Sort(ByMinDeliveryTime(max3Providers))
+
+	// fullNames := es.displayFullCountry()
+	// println(fullNames)
+	// //for _, name := range fullNames {
+	// //	result[name] = append(result[name], min3Providers[0:2])
+	// //}
+
+	fmt.Println(rawData)
 
 	return result
 }
 
-func (es *EmailService) Execute(path string) []EmailData {
+func (es *EmailService) Execute(filename string) []EmailData {
+	path := utils.GetConfigPath(filename)
 	bytes, err := es.ReadCSVFile(path)
 	if err != nil {
-		log.Fatalln("no data")
+		log.Fatalln("no data: ", err)
 	}
 	err = es.SetData(bytes)
 	if err != nil {
