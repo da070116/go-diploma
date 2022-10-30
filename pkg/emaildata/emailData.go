@@ -26,6 +26,34 @@ type EmailService struct {
 	Data []EmailData
 }
 
+// GetEmailService - initialize service for Email data
+func GetEmailService() EmailServiceInterface {
+	return &EmailService{Data: make([]EmailData, 0)}
+}
+
+// EmailData - structure for store system data :
+// Country - alpha-2 country code from a list
+// DeliveryTime - response in milliseconds
+// Provider - Email provider from a list
+type EmailData struct {
+	Country      string `json:"country"`
+	Provider     string `json:"provider"`
+	DeliveryTime int    `json:"delivery_time"`
+}
+
+type ByMinDeliveryTime []EmailData
+
+func (a ByMinDeliveryTime) Len() int           { return len(a) }
+func (a ByMinDeliveryTime) Less(i, j int) bool { return a[i].DeliveryTime < a[j].DeliveryTime }
+func (a ByMinDeliveryTime) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+
+type ByMaxDeliveryTime []EmailData
+
+func (a ByMaxDeliveryTime) Len() int           { return len(a) }
+func (a ByMaxDeliveryTime) Less(i, j int) bool { return a[i].DeliveryTime > a[j].DeliveryTime }
+func (a ByMaxDeliveryTime) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+
+// displayFullCountry - show full country name instead of alpha-2 code
 func (es *EmailService) displayFullCountry() []EmailData {
 	result := es.Data
 	countriesMap := utils.GetCountries()
@@ -35,6 +63,7 @@ func (es *EmailService) displayFullCountry() []EmailData {
 	return result
 }
 
+// ReturnFormattedData - format EmailData
 func (es *EmailService) ReturnFormattedData() map[string][][]EmailData {
 	result := make(map[string][][]EmailData)
 
@@ -66,11 +95,12 @@ func (es *EmailService) ReturnFormattedData() map[string][][]EmailData {
 	return result
 }
 
+// Execute - endpoint function to collect and return related data
 func (es *EmailService) Execute(filename string) map[string][][]EmailData {
 	path := utils.GetConfigPath(filename)
 	bytes, err := es.ReadCSVFile(path)
 	if err != nil {
-		log.Fatalln("no data: ", err)
+		log.Fatalln("no data for email service: ", err)
 	}
 	err = es.SetData(bytes)
 	if err != nil {
@@ -79,6 +109,7 @@ func (es *EmailService) Execute(filename string) map[string][][]EmailData {
 	return es.ReturnFormattedData()
 }
 
+// ReadCSVFile - read csv file to get Email data
 func (es *EmailService) ReadCSVFile(path string) (res []byte, err error) {
 	if len(path) == 0 {
 		err = errors.New("no path provided")
@@ -98,6 +129,7 @@ func (es *EmailService) ReadCSVFile(path string) (res []byte, err error) {
 	return
 }
 
+// SetData - - append data from an Email file contents.
 func (es *EmailService) SetData(bytes []byte) error {
 	initialSize := len(es.Data)
 	data := string(bytes[:])
@@ -115,10 +147,12 @@ func (es *EmailService) SetData(bytes []byte) error {
 	return nil
 }
 
+// DisplayData - retuen EmailData from service instance
 func (es *EmailService) DisplayData() []EmailData {
 	return es.Data
 }
 
+// validateData - validate EmailData
 func (es *EmailService) validateData(record string) (validatedData EmailData, err error) {
 	// important fix - string comes to function with a new-line-sign, that affects on validation
 	cleanString := strings.TrimRightFunc(record, func(r rune) bool {
@@ -153,30 +187,3 @@ func (es *EmailService) validateData(record string) (validatedData EmailData, er
 
 	return
 }
-
-// GetEmailService - initialize service for Email data
-func GetEmailService() EmailServiceInterface {
-	return &EmailService{Data: make([]EmailData, 0)}
-}
-
-// EmailData - structure for store system data :
-// Country - alpha-2 country code from a list
-// DeliveryTime - response in milliseconds
-// Provider - Email provider from a list
-type EmailData struct {
-	Country      string `json:"country"`
-	Provider     string `json:"provider"`
-	DeliveryTime int    `json:"delivery_time"`
-}
-
-type ByMinDeliveryTime []EmailData
-
-func (a ByMinDeliveryTime) Len() int           { return len(a) }
-func (a ByMinDeliveryTime) Less(i, j int) bool { return a[i].DeliveryTime < a[j].DeliveryTime }
-func (a ByMinDeliveryTime) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-
-type ByMaxDeliveryTime []EmailData
-
-func (a ByMaxDeliveryTime) Len() int           { return len(a) }
-func (a ByMaxDeliveryTime) Less(i, j int) bool { return a[i].DeliveryTime > a[j].DeliveryTime }
-func (a ByMaxDeliveryTime) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }

@@ -24,6 +24,28 @@ type VoiceCallService struct {
 	Data []VoiceCallData
 }
 
+// GetVoiceCallService - initialize service for VoiceCall data
+func GetVoiceCallService() VoiceCallServiceInterface {
+	return &VoiceCallService{Data: make([]VoiceCallData, 0)}
+}
+
+// VoiceCallData - structure for store system data :
+// Country - alpha-2 country code from a list
+// Bandwidth - channel efficiency percent value (0 to 100)
+// ResponseTime - response in milliseconds
+// Provider - VoiceCall provider from a list
+type VoiceCallData struct {
+	Country             string  `json:"country"`
+	Bandwidth           int     `json:"bandwidth"`
+	ResponseTime        int     `json:"response_time"`
+	Provider            string  `json:"provider"`
+	ConnectionStability float32 `json:"connection_stability"`
+	TTFB                int     `json:"ttfb"`
+	VoiceClarity        int     `json:"voice_clarity"`
+	MedianCallTime      int     `json:"median_call_time"`
+}
+
+// Execute - endpoint function to collect and return related data
 func (vc *VoiceCallService) Execute(filename string) []VoiceCallData {
 	path := utils.GetConfigPath(filename)
 	bytes, err := vc.ReadCSVFile(path)
@@ -37,6 +59,7 @@ func (vc *VoiceCallService) Execute(filename string) []VoiceCallData {
 	return vc.ReturnData()
 }
 
+// ReadCSVFile - read csv to get VoiceCall data
 func (vc *VoiceCallService) ReadCSVFile(path string) (res []byte, err error) {
 	if len(path) == 0 {
 		err = errors.New("no path provided")
@@ -53,6 +76,7 @@ func (vc *VoiceCallService) ReadCSVFile(path string) (res []byte, err error) {
 	return
 }
 
+// SetData - add data to VoiceCall service
 func (vc *VoiceCallService) SetData(bytes []byte) error {
 	initialSize := len(vc.Data)
 	data := string(bytes[:])
@@ -70,10 +94,12 @@ func (vc *VoiceCallService) SetData(bytes []byte) error {
 	return nil
 }
 
+// ReturnData - raw display VoiceCall data
 func (vc *VoiceCallService) ReturnData() []VoiceCallData {
 	return vc.Data
 }
 
+// validateData - validation data
 func (vc *VoiceCallService) validateData(record string) (validatedData VoiceCallData, err error) {
 	// important fix - string comes to function with a new-line-sign, that affects on validation
 	cleanString := strings.TrimRightFunc(record, func(r rune) bool {
@@ -137,25 +163,4 @@ func (vc *VoiceCallService) validateData(record string) (validatedData VoiceCall
 	}
 
 	return
-}
-
-// GetVoiceCallService - initialize service for VoiceCall data
-func GetVoiceCallService() VoiceCallServiceInterface {
-	return &VoiceCallService{Data: make([]VoiceCallData, 0)}
-}
-
-// VoiceCallData - structure for store system data :
-// Country - alpha-2 country code from a list
-// Bandwidth - channel efficiency percent value (0 to 100)
-// ResponseTime - response in milliseconds
-// Provider - VoiceCall provider from a list
-type VoiceCallData struct {
-	Country             string  `json:"country"`
-	Bandwidth           int     `json:"bandwidth"`
-	ResponseTime        int     `json:"response_time"`
-	Provider            string  `json:"provider"`
-	ConnectionStability float32 `json:"connection_stability"`
-	TTFB                int     `json:"ttfb"`
-	VoiceClarity        int     `json:"voice_clarity"`
-	MedianCallTime      int     `json:"median_call_time"`
 }

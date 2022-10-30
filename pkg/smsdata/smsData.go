@@ -38,7 +38,7 @@ func (s *SMSService) ReturnFormattedData() [][]SMSData {
 	return result
 }
 
-// Execute - initiate collector and fetch data
+// Execute - endpoint function to collect and return related data
 func (s *SMSService) Execute(filename string) []SMSData {
 	path := utils.GetConfigPath(filename)
 	bytes, err := s.ReadCSVFile(path)
@@ -139,6 +139,7 @@ func (s *SMSService) validateData(record string) (validatedData SMSData, err err
 	return
 }
 
+// displayFullCountry - show full country name instead of alpha-2 code
 func (s *SMSService) displayFullCountry() []SMSData {
 	result := s.Data
 	countriesMap := utils.GetCountries()

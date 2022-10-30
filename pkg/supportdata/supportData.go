@@ -28,8 +28,35 @@ type SupportService struct {
 	Data []SupportData
 }
 
+// ReturnFormattedData - show siice [loadLevel, expectedTime] for Support data
 func (s *SupportService) ReturnFormattedData() []int {
 	result := make([]int, 0)
+	const (
+		LowSupportLoad    int = 1
+		MediumSupportLoad int = 2
+		HighSupportLoad   int = 3
+
+		TicketsPerHour    int = 18
+		HighLoadThreshold int = 16
+		LowLoadThreshold  int = 9
+	)
+	activeTicketsNumber := 0
+	for _, ticket := range s.Data {
+		activeTicketsNumber += ticket.ActiveTickets
+	}
+
+	expectedTime := activeTicketsNumber * (60 / TicketsPerHour)
+	currentSupportLoad := MediumSupportLoad
+
+	if activeTicketsNumber >= HighLoadThreshold {
+		currentSupportLoad = HighSupportLoad
+	} else {
+		if activeTicketsNumber < LowLoadThreshold {
+			currentSupportLoad = LowSupportLoad
+		}
+	}
+
+	result = append(result, currentSupportLoad, expectedTime)
 	return result
 }
 

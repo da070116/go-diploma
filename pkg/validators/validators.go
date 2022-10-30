@@ -89,6 +89,7 @@ func ValidateEmailProvider(rawValue string) (result string, err error) {
 	return
 }
 
+// ValidateAsInteger - validate value whether it is integer
 func ValidateAsInteger(rawValue string) (value int, err error) {
 	value, err = strconv.Atoi(rawValue)
 	if err != nil {
@@ -97,6 +98,7 @@ func ValidateAsInteger(rawValue string) (value int, err error) {
 	return
 }
 
+// ValidateConnectionStability - validate value whether it is float32 and in range [0,1]
 func ValidateConnectionStability(rawValue string) (value float32, err error) {
 	value64, err := strconv.ParseFloat(rawValue, 32)
 	if err != nil {

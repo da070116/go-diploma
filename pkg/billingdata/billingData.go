@@ -21,11 +21,12 @@ type BillingService struct {
 	Data BillingData
 }
 
+// Execute - endpoint function to collect and return related data
 func (bs *BillingService) Execute(filename string) (result BillingData) {
 	path := utils.GetConfigPath(filename)
 	bytes, err := bs.ReadFile(path)
 	if err != nil {
-		log.Fatalln("no data: ", err)
+		log.Fatalln("no data for billing service: ", err)
 	}
 	err = bs.SetData(bytes)
 	if err != nil {

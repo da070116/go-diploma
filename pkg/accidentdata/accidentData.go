@@ -36,14 +36,15 @@ func (a ByState) Len() int           { return len(a) }
 func (a ByState) Less(i, j int) bool { return a[i].Status < a[j].Status }
 func (a ByState) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 
+// ReturnFormattedData - return accident data, active first
 func (as *AccidentService) ReturnFormattedData() []AccidentData {
 	result := as.Data
 	sort.Sort(ByState(result))
 	return result
 }
 
+// Execute - endpoint function to collect and return related data
 func (as *AccidentService) Execute(path string) []AccidentData {
-
 	resp, err := as.SendRequest(path)
 	if err != nil {
 		log.Fatalln(err)

@@ -43,6 +43,7 @@ type MMSService struct {
 	Data []MMSData
 }
 
+// ReturnFormattedData - return MMS data sorted by provider and by country
 func (m *MMSService) ReturnFormattedData() [][]MMSData {
 	fullCountryData := m.displayFullCountry()
 	result := make([][]MMSData, 0)
@@ -54,6 +55,7 @@ func (m *MMSService) ReturnFormattedData() [][]MMSData {
 	return result
 }
 
+// displayFullCountry - show full country name instead of alpha-2 code
 func (m *MMSService) displayFullCountry() []MMSData {
 	result := m.Data
 	countriesMap := utils.GetCountries()
@@ -63,6 +65,7 @@ func (m *MMSService) displayFullCountry() []MMSData {
 	return result
 }
 
+// Execute - endpoint function to collect and return related data
 func (m *MMSService) Execute(s string) []MMSData {
 	resp, err := m.SendRequest(s)
 	if err != nil {
