@@ -5,6 +5,8 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+
+	"github.com/joho/godotenv"
 )
 
 // FileClose - error-free file closing
@@ -94,4 +96,15 @@ func Keys[Base string | struct{}](m map[string]Base) (keys []string) {
 		keys = append(keys, k)
 	}
 	return
+}
+
+func GetEnvVariable(varName string) (value string) {
+
+	pathToEnvFile := GetConfigPath("local.env")
+
+	err := godotenv.Load(pathToEnvFile)
+	if err != nil {
+		log.Fatalf("Some error occured. Err: %s", err)
+	}
+	return os.Getenv(varName)
 }
